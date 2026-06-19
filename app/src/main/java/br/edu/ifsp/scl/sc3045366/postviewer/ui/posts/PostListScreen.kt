@@ -40,6 +40,12 @@ fun PostListScreen(
                             .clickable { onPostClick(post.id) }
                             .padding(16.dp)
                     )
+
+                    Text(
+                        text = "${viewModel.totalCommentsById(post.id)} comentários",
+                        modifier = Modifier.padding(16.dp)
+                    )
+
                     HorizontalDivider()
                 }
             }

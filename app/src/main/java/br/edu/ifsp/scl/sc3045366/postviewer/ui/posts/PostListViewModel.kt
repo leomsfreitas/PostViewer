@@ -10,7 +10,10 @@ import kotlinx.coroutines.launch
 
 sealed class PostListUiState {
     object Loading : PostListUiState()
-    data class Success(val posts: List<Post>) : PostListUiState()
+    data class Success(
+        val posts: List<Post>,
+        val commentCounts: Map<Int, Int> = emptyMap()
+    ) : PostListUiState()
     data class Error(val message: String) : PostListUiState()
 }
 
@@ -27,10 +30,16 @@ class PostListViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val posts = RetrofitClient.apiService.getPosts()
-                _uiState.value = PostListUiState.Success(posts)
+                val commentCounts = posts.associate { post ->
+                    post.id to RetrofitClient.apiService.getComments(post.id).size
+                }
+                _uiState.value = PostListUiState.Success(posts, commentCounts)
             } catch (e: Exception) {
                 _uiState.value = PostListUiState.Error(e.message ?: "Unknown error")
             }
         }
     }
+
+    fun totalCommentsById(postId: Int): Int =
+        (_uiState.value as? PostListUiState.Success)?.commentCounts?.get(postId) ?: 0
 }
